@@ -31,3 +31,12 @@ model SiteConfig {
   storyTitle   String
   storyText    String
 }
+model Order {
+  id              String   @id @default(cuid())
+  stripeSessionId String   @unique
+  customerEmail   String
+  items           Json
+  totalAmount     Decimal
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+}
