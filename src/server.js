@@ -38,11 +38,11 @@ app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, 
         customerEmail: session.customer_email,
         items: JSON.parse(session.metadata.items),
         totalAmount: session.amount_total / 100,
-        status: 'paid'
+        status: 'paid',
+        shippingAddress: session.collected_information?.shipping_details || null
       }
     })
   }
-
   res.json({ received: true })
 })
 
@@ -86,6 +86,17 @@ app.get('/api/products', async (req, res) => {
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch products' })
+  }
+})
+app.get('/api/admin/orders', requireAdmin, async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
+    res.json(orders)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch orders' })
   }
 })
 
@@ -152,6 +163,9 @@ app.post('/api/checkout', async (req, res) => {
       success_url: `${process.env.FRONTEND_URL}/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cart`,
       customer_email: email,
+      shipping_address_collection: {
+        allowed_countries: ['US']
+      },
       metadata: {
         items: JSON.stringify(items.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price })))
       }

@@ -38,5 +38,6 @@ model Order {
   items           Json
   totalAmount     Decimal
   status          String   @default("pending")
+  shippingAddress Json?
   createdAt       DateTime @default(now())
 }
